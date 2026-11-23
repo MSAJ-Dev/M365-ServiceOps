@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>M365 ServiceOps demo</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; background: #edf2f7; color: #142c43; font: 1rem/1.6 system-ui, sans-serif; }
+main { max-width: 42rem; margin: 3rem auto; padding: 0 1rem; }
+header, section { background: white; border: 1px solid #d7e1eb; padding: 1.4rem; border-radius: .9rem; margin: 1rem 0; }
+header { background: #142c43; color: white; }
+h1,h2,p { margin: 0 0 .55rem; }
+label { display: block; margin: .65rem 0; }
+select,input { font: inherit; margin-left: .4rem; }
+output { display: block; padding: .8rem; background: #e6f2ee; border-left: .25rem solid #19715e; }
+</style></head>
+<body><main><header><h1>M365 ServiceOps</h1><p>Triage a simulated Microsoft 365 incident and see how priority affects response and resolution targets.</p></header>
+<section><h2>Try a scenario</h2>
+<label>Incident priority <select id="priority"><option>P1</option><option>P2</option><option>P3</option><option>P4</option></select></label>
+<label>Minutes since intake <input id="elapsed" type="number" min="0" step="1" value="20"></label>
+<label><input id="acknowledged" type="checkbox"> Acknowledged</label>
+<output id="result" aria-live="polite"></output></section>
+<p>The thresholds mirror the project’s SLA policy. The walkthrough uses simulated data and does not contact Microsoft Graph.</p></main>
+<script>
+"use strict";
+const get = id => document.getElementById(id);
+const controls = ["priority", "elapsed", "acknowledged"];
+const targets = { P1: [15, 240], P2: [60, 480], P3: [240, 1440], P4: [480, 4320] };
+function calculate() {
+  const elapsed = get("elapsed").valueAsNumber;
+  if (!Number.isFinite(elapsed) || elapsed < 0) return "Enter a nonnegative elapsed time.";
+  const [response, resolution] = targets[get("priority").value];
+  const responseStatus = get("acknowledged").checked ? "acknowledged in this simulation" :
+    elapsed >= response ? "response target reached" : (response - elapsed) + " minutes remaining";
+  const resolutionStatus = elapsed >= resolution ? "resolution target reached" : (resolution - elapsed) + " minutes remaining";
+  return "Response (" + response + " min): " + responseStatus + ". Resolution (" + resolution + " min): " + resolutionStatus + ".";
+}
+function render() { get("result").textContent = calculate(); }
+for (const control of controls) get(control).addEventListener("input", render);
+render();
+</script></body></html>
